@@ -3,12 +3,18 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { safeStringify } from '@stoplight/json';
 import { Button, Flex, Panel, Text } from '@stoplight/mosaic';
 import { CodeViewer } from '@stoplight/mosaic-code-viewer';
+<<<<<<< HEAD
 import { Dictionary, IHttpOperation } from '@stoplight/types';
 import * as Sampler from 'openapi-sampler';
+=======
+import { Dictionary, HttpMethod, IHttpOperation, IHttpRequest } from '@stoplight/types';
+import { atom, useAtom } from 'jotai';
+>>>>>>> 095b92b... feat: display RequestSamples component in the docs
 import * as React from 'react';
 
 import { HttpCodeDescriptions } from '../../constants';
 import { getHttpCodeColor } from '../../utils/http';
+import { httpRequestToFetchRequest } from '../../utils/http-spec/requestMappers';
 import { FormDataBody } from './FormDataBody';
 import { getMockData, MockData } from './mocking-utils';
 import { MockingButton } from './MockingButton';
@@ -46,6 +52,8 @@ interface ErrorState {
   error: Error;
 }
 
+export const httpRequestAtom = atom<IHttpRequest | null>(null);
+
 /**
  * Displays the TryIt component for a given IHttpOperation.
  * Relies on jotai, needs to be wrapped in a PersistenceContextProvider
@@ -62,6 +70,7 @@ export const TryIt: React.FC<TryItProps> = ({ httpOperation, showMocking, mockUr
 
   const [bodyParameterValues, setBodyParameterValues, formDataState] = useBodyParameterState(httpOperation);
 
+<<<<<<< HEAD
   React.useEffect(() => {
     const textRequestBodySchema = httpOperation.request?.body?.contents?.[0]?.schema;
     const textRequestBodyExamples = httpOperation.request?.body?.contents?.[0]?.examples;
@@ -81,6 +90,23 @@ export const TryIt: React.FC<TryItProps> = ({ httpOperation, showMocking, mockUr
   }, [httpOperation]);
 
   const [textRequestBody, setTextRequestBody] = React.useState<string>('');
+=======
+  const [, setHttpRequest] = useAtom(httpRequestAtom);
+
+  React.useEffect(() => {
+    (async () => {
+      const mockData = getMockData(mockUrl, httpOperation, mockingOptions);
+      setHttpRequest(
+        await buildRequest({
+          httpOperation,
+          parameterValues: parameterValuesWithDefaults,
+          bodyParameterValues,
+          mockData,
+        }),
+      );
+    })();
+  }, [httpOperation, parameterValuesWithDefaults, bodyParameterValues, mockUrl, mockingOptions, setHttpRequest]);
+>>>>>>> 095b92b... feat: display RequestSamples component in the docs
 
   if (!server) return null;
 
@@ -88,12 +114,23 @@ export const TryIt: React.FC<TryItProps> = ({ httpOperation, showMocking, mockUr
     try {
       setLoading(true);
       const mockData = getMockData(mockUrl, httpOperation, mockingOptions);
+<<<<<<< HEAD
       const request = await buildFetchRequest({
         parameterValues: parameterValuesWithDefaults,
         httpOperation,
         bodyInput: formDataState.isFormDataBody ? bodyParameterValues : textRequestBody,
         mockData,
       });
+=======
+      const request = httpRequestToFetchRequest(
+        await buildRequest({
+          httpOperation,
+          parameterValues: parameterValuesWithDefaults,
+          bodyParameterValues,
+          mockData,
+        }),
+      );
+>>>>>>> 095b92b... feat: display RequestSamples component in the docs
       const response = await fetch(...request);
       setResponse({
         status: response.status,
@@ -108,7 +145,7 @@ export const TryIt: React.FC<TryItProps> = ({ httpOperation, showMocking, mockUr
 
   return (
     <div>
-      <Panel isCollapsible={false} className="p-0">
+      <Panel rounded isCollapsible={false} className="p-0">
         <Panel.Titlebar bg="canvas-300">
           <div role="heading" className="sl-font-bold">
             <Text color="primary">{httpOperation.method.toUpperCase()}</Text>
@@ -189,12 +226,12 @@ interface BuildFetchRequestInput {
   mockData?: MockData;
 }
 
-async function buildFetchRequest({
+async function buildRequest({
   httpOperation,
   bodyInput,
   parameterValues,
   mockData,
-}: BuildFetchRequestInput): Promise<Parameters<typeof fetch>> {
+}: BuildFetchRequestInput): Promise<IHttpRequest> {
   const server = mockData?.url || httpOperation.servers?.[0]?.url;
 
   const queryParams = httpOperation.request?.query
@@ -205,6 +242,7 @@ async function buildFetchRequest({
   const url = new URL(server + expandedPath);
   url.search = new URLSearchParams(queryParams).toString();
 
+<<<<<<< HEAD
   return [
     url.toString(),
     {
@@ -218,7 +256,55 @@ async function buildFetchRequest({
       body: typeof bodyInput === 'object' ? await createRequestBody(httpOperation, bodyInput) : bodyInput,
     },
   ];
+=======
+  const headers = {
+    ...Object.fromEntries(
+      httpOperation.request?.headers?.map(header => [header.name, parameterValues[header.name] ?? '']) ?? [],
+    ),
+    ...mockData?.header,
+  };
+
+  return {
+    url: url.toString(),
+    method: httpOperation.method as HttpMethod,
+    headers,
+    query: {},
+    baseUrl: '',
+    body: await createRequestBody(httpOperation, bodyParameterValues),
+  };
+>>>>>>> 095b92b... feat: display RequestSamples component in the docs
 }
+
+// async function buildFetchRequest({
+//   httpOperation,
+//   parameterValues,
+//   bodyParameterValues,
+//   mockData,
+// }: BuildFetchRequestInput): Promise<Parameters<typeof fetch>> {
+//   const server = mockData?.url || httpOperation.servers?.[0]?.url;
+
+//   const queryParams = httpOperation.request?.query
+//     ?.map(param => [param.name, parameterValues[param.name] ?? ''])
+//     .filter(([_, value]) => value.length > 0);
+
+//   const expandedPath = uriExpand(httpOperation.path, parameterValues);
+//   const url = new URL(server + expandedPath);
+//   url.search = new URLSearchParams(queryParams).toString();
+
+//   return [
+//     url.toString(),
+//     {
+//       method: httpOperation.method,
+//       headers: {
+//         ...Object.fromEntries(
+//           httpOperation.request?.headers?.map(header => [header.name, parameterValues[header.name] ?? '']) ?? [],
+//         ),
+//         ...mockData?.header,
+//       },
+//       body: await createRequestBody(httpOperation, bodyParameterValues),
+//     },
+//   ];
+// }
 
 function uriExpand(uri: string, data: Dictionary<string, string>) {
   if (!data) {

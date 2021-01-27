@@ -7,24 +7,20 @@ import * as React from 'react';
 
 import { withPersistenceBoundary } from '../../../context/Persistence';
 import { RequestSamples as RequestSamplesWithoutPersistence } from '../RequestSamples';
+import { IHttpRequest } from '@stoplight/types';
 
 const RequestSamples = withPersistenceBoundary(RequestSamplesWithoutPersistence);
 
-const sampleRequest = {
-  method: 'POST',
+const sampleRequest: IHttpRequest = {
+  method: 'post',
   url: 'https://google.com',
-  httpVersion: 'HTTP/1.1',
-  headers: [
-    {
-      name: 'Cache-Control',
-      value: 'max-age=0',
-    },
-  ],
-  queryString: [],
-  cookies: [],
-  headersSize: 678,
-  bodySize: 0,
+  headers: {
+    'Cache-Control': 'max-age=0'
+  },
+  baseUrl: 'https://google.com',
+  query: {}
 };
+
 describe('RequestSend', () => {
   it('Displays basic CURL request', () => {
     const { container } = render(<RequestSamples request={sampleRequest} />);

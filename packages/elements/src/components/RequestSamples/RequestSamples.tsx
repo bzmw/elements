@@ -1,9 +1,10 @@
 import { CopyButton, Panel, Select } from '@stoplight/mosaic';
 import { CodeViewer } from '@stoplight/mosaic-code-viewer';
-import { Request } from 'har-format';
+import { IHttpRequest } from '@stoplight/types';
 import { atom, useAtom } from 'jotai';
 import React from 'react';
 
+import { httpRequestToHARRequest } from '../../utils/http-spec/requestMappers';
 import { persistAtom } from '../../utils/jotai/persistAtom';
 import { convertRequestToSample } from './convertRequestToSample';
 import { getConfigFor, selectOptions } from './requestSampleConfigs';
@@ -12,7 +13,7 @@ export interface RequestSamplesProps {
   /**
    * The HTTP request to generate code for.
    */
-  request: Request;
+  request: IHttpRequest;
 }
 
 const selectedLanguageAtom = persistAtom('RequestSamples_selectedLanguage', atom('Shell'));
@@ -32,7 +33,11 @@ export const RequestSamples = React.memo<RequestSamplesProps>(({ request }) => {
     selectedLibrary,
   );
 
-  const requestSample = convertRequestToSample(httpSnippetLanguage, httpSnippetLibrary, request);
+  const requestSample = convertRequestToSample(
+    httpSnippetLanguage,
+    httpSnippetLibrary,
+    httpRequestToHARRequest(request),
+  );
 
   const handleSelectClick = (event: React.MouseEvent<HTMLSelectElement>) => {
     const value = event.currentTarget.value;
