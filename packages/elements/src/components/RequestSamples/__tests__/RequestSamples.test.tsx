@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom';
 
+import { IHttpRequest } from '@stoplight/types';
 import { screen } from '@testing-library/dom';
 import { cleanup, render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -7,7 +8,6 @@ import * as React from 'react';
 
 import { withPersistenceBoundary } from '../../../context/Persistence';
 import { RequestSamples as RequestSamplesWithoutPersistence } from '../RequestSamples';
-import { IHttpRequest } from '@stoplight/types';
 
 const RequestSamples = withPersistenceBoundary(RequestSamplesWithoutPersistence);
 
@@ -15,10 +15,10 @@ const sampleRequest: IHttpRequest = {
   method: 'post',
   url: 'https://google.com',
   headers: {
-    'Cache-Control': 'max-age=0'
+    'Cache-Control': 'max-age=0',
   },
   baseUrl: 'https://google.com',
-  query: {}
+  query: {},
 };
 
 describe('RequestSend', () => {
