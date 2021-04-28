@@ -1,9 +1,11 @@
 import { safeStringify } from '@stoplight/json';
 import { Panel } from '@stoplight/mosaic';
 import { IMediaTypeContent } from '@stoplight/types';
+import { JSONSchema7 } from 'json-schema';
 import { omit } from 'lodash';
 import * as React from 'react';
 
+import { isJSONSchema } from '../../utils/guards';
 import { FileUploadParameterEditor } from './FileUploadParameterEditors';
 import { parameterSupportsFileUpload } from './parameter-utils';
 import { ParameterEditor } from './ParameterEditor';
@@ -34,6 +36,7 @@ export const FormDataBody: React.FC<FormDataBodyProps> = ({ specification, value
       <Panel.Titlebar>Body</Panel.Titlebar>
       <Panel.Content className="sl-overflow-y-auto ParameterGrid OperationParametersContent">
         {Object.entries(parameters)
+          .filter<[string, JSONSchema7]>((entry): entry is [string, JSONSchema7] => isJSONSchema(schema))
           .map(([name, schema]) => ({ name, schema, examples: schema?.examples }))
           .map(parameter => {
             const supportsFileUpload = parameterSupportsFileUpload(parameter);

@@ -257,6 +257,6 @@ export const httpOperation: IHttpOperation = {
       },
     ],
   },
-};
+} as any;
 
 export default httpOperation;
